@@ -6,16 +6,16 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const router = useRouter();
 
   useEffect(() => {
-    // Check for token in localStorage on initial load
     const token = localStorage.getItem('token');
     if (token) {
-      // In a real application, you would validate the token with your backend
       setIsAuthenticated(true);
-      setUser({ email: localStorage.getItem('userEmail') }); // Or fetch user details
+      setUser({ email: localStorage.getItem('userEmail'), name: localStorage.getItem('userName') });
     }
+    setLoading(false); // Set loading to false after checking token
   }, []);
 
   const login = async (email, password) => {
@@ -26,8 +26,9 @@ export const AuthProvider = ({ children }) => {
           const token = 'dummy-token'; // Replace with actual token from backend
           localStorage.setItem('token', token);
           localStorage.setItem('userEmail', email);
+          localStorage.setItem('userName', 'Test User'); // Storing a dummy name for now
           setIsAuthenticated(true);
-          setUser({ email });
+          setUser({ email, name: 'Test User' });
           resolve({ message: 'Login successful' });
         } else {
           reject(new Error('Invalid credentials'));
@@ -53,13 +54,14 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
     setIsAuthenticated(false);
     setUser(null);
     router.push('/auth');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

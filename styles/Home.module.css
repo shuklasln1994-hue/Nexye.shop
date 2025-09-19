@@ -1,0 +1,147 @@
+.servicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  max-width: 1000px;
+  margin: 40px auto;
+}
+
+.serviceCard {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 60px 40px 40px 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.serviceCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.serviceCardPopular {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.2);
+  transform: translateY(-20px);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3b82f6;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+  z-index: 10;
+}
+
+.serviceTitle {
+  font-size: 1.8rem;
+  color: #1f2937;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.serviceCardPopular .serviceTitle {
+  color: #3b82f6;
+}
+
+.serviceDescription {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.servicePrice {
+  font-size: 2.5rem;
+  color: #1f2937;
+  font-weight: 800;
+  margin-bottom: 30px;
+}
+
+.serviceCardPopular .servicePrice {
+  color: #3b82f6;
+}
+
+.serviceFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  text-align: left;
+}
+
+.serviceFeatures li {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+  color: #4b5563;
+  font-size: 1rem;
+}
+
+.serviceFeatures li svg {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.serviceCard button {
+  margin-top: auto; /* Pushes the button to the bottom */
+  width: 100%;
+  padding: 15px 25px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.serviceCard .primaryButton {
+  background: #3b82f6;
+  color: white;
+}
+
+.serviceCard .primaryButton:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.serviceCard .secondaryButton {
+  background: transparent;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+}
+
+.serviceCard .secondaryButton:hover {
+  background: #e0e7ff;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .servicesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceCard {
+    padding: 30px;
+  }
+
+  .serviceTitle {
+    font-size: 1.5rem;
+  }
+
+  .servicePrice {
+    font-size: 2rem;
+  }
+}

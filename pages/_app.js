@@ -2,10 +2,15 @@ import '../styles/globals.css';
 import { AuthProvider } from '../context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Script from 'next/script';
 
 function MyApp({ Component, pageProps }) {
   return (
     <AuthProvider>
+      <Script
+        src="https://verify.msg91.com/otp-provider.js"
+        strategy="beforeInteractive"
+      />
       <Component {...pageProps} />
       <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </AuthProvider>

@@ -1,51 +1,45 @@
 import nodemailer from 'nodemailer';
+import { storeOtp } from '../utils/otpStore';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
+      return res.status(400).json({ message: 'Email is required.' });
     }
 
     // Generate a 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // In a real application, you would store the OTP with an expiration time
-    // and associate it with the user's email/session.
+    // Store the OTP with an expiration time
+    storeOtp(email, otp);
+
     console.log(`Generated OTP for ${email}: ${otp}`);
 
-    // Configure Nodemailer (replace with your actual email service details)
+    // Configure Nodemailer to send email via privateemail.com
+    // You would typically get these credentials from environment variables
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // e.g., 'gmail', 'outlook', or your SMTP host
+      host: 'mail.privateemail.com',
+      port: 465,
+      secure: true, // Use SSL
       auth: {
-        user: process.env.EMAIL_USER, // Your email address
-        pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+        user: 'care@nexye.shop', // User provided email
+        pass: '@Adrika@2021', // User provided password
       },
     });
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Your OTP for NEXYE Courier Portal',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #667eea;">NEXYE Courier Portal - OTP Verification</h2>
-          <p>Dear User,</p>
-          <p>Your One-Time Password (OTP) for verification is: <strong>${otp}</strong></p>
-          <p>This OTP is valid for 5 minutes. Please do not share it with anyone.</p>
-          <p>If you did not request this, please ignore this email.</p>
-          <p>Thank you,<br/>NEXYE Team</p>
-        </div>
-      `,
-    };
-
     try {
-      await transporter.sendMail(mailOptions);
+      await transporter.sendMail({
+        from: 'care@nexye.shop', // Sender address
+        to: email, // List of receivers
+        subject: 'Your NEXYE OTP',
+        html: `<p>Your One-Time Password (OTP) for NEXYE is: <strong>${otp}</strong></p><p>This OTP is valid for 5 minutes.</p>`,
+      });
       res.status(200).json({ message: 'OTP sent successfully!' });
     } catch (error) {
       console.error('Error sending email:', error);
-      res.status(500).json({ message: 'Failed to send OTP email.', error: error.message });
+      res.status(500).json({ message: 'Failed to send OTP.', error: error.message });
     }
   } else {
     res.setHeader('Allow', ['POST']);

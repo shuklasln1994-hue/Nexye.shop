@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useAuth } from '../context/AuthContext';
 
 export default function HomePage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userAuth, setUserAuth] = useState(null);
+  const { isAuthenticated, user, logout, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,12 +33,6 @@ export default function HomePage() {
     } else {
       router.push('/auth');
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('userAuth');
-    setIsAuthenticated(false);
-    setUserAuth(null);
   };
 
   const scrollToSection = (sectionId) => {
@@ -133,21 +127,22 @@ export default function HomePage() {
 
     // Hero section styles
     hero: {
-      minHeight: '100vh',
+      minHeight: 'calc(100vh - 70px)',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       color: 'white',
       textAlign: 'center',
-      padding: '0 20px',
+      padding: '80px 20px 0 20px',
       position: 'relative',
       overflow: 'hidden'
     },
     heroContent: {
       maxWidth: '900px',
       zIndex: 2,
-      position: 'relative'
+      position: 'relative',
+      margin: '0 auto'
     },
     heroTitle: {
       fontSize: 'clamp(2.5rem, 8vw, 5rem)',
@@ -213,9 +208,11 @@ export default function HomePage() {
     // Stats section
     stats: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-      gap: '30px',
-      marginTop: '40px'
+      gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+      gap: '20px',
+      marginTop: '40px',
+      textAlign: 'center',
+      flexWrap: 'wrap'
     },
     statItem: {
       textAlign: 'center'
@@ -377,7 +374,7 @@ export default function HomePage() {
     // About section
     aboutGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
       gap: '60px',
       alignItems: 'center'
     },
@@ -561,6 +558,10 @@ export default function HomePage() {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading spinner
+  }
+
   return (
     <>
       <Head>
@@ -583,15 +584,24 @@ export default function HomePage() {
             {/* Desktop Menu */}
             {isClient && (
               <div style={{...styles.navLinks, display: window.innerWidth > 768 ? 'flex' : 'none'}}>
-                {['Home', 'Services', 'About', 'Contact'].map((item) => (
+                {['Home', 'About', 'Contact'].map((item) => (
                   <button
                     key={item}
                     onClick={() => router.push(item === 'Home' ? '/' : `/${item.toLowerCase()}`)}
-                    style={styles.navLinkButton}
+                    style={styles.navLink}
                   >
                     {item}
                   </button>
                 ))}
+                {isAuthenticated ? (
+                  <button onClick={logout} style={styles.logoutButton}>
+                    Logout
+                  </button>
+                ) : (
+                  <button onClick={handleGetStarted} style={styles.shipButton}>
+                    Login
+                  </button>
+                )}
               </div>
             )}
 
@@ -608,7 +618,7 @@ export default function HomePage() {
               borderTop: '1px solid #e5e7eb',
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
             }}>
-              {['Home', 'Services', 'About', 'Contact'].map((item) => (
+              {['Home', 'About', 'Contact'].map((item) => (
                 <button
                   key={item}
                   onClick={() => {
@@ -635,11 +645,11 @@ export default function HomePage() {
               {isAuthenticated ? (
                 <div style={{padding: '15px 20px', borderTop: '1px solid #e5e7eb'}}>
                   <p style={{fontSize: '14px', color: '#666', margin: '0 0 10px 0'}}>
-                    Welcome, {userAuth?.name || 'User'}
+                    Welcome, {user?.name || 'User'}
                   </p>
                   <button
                     onClick={() => {
-                      handleLogout();
+                      logout();
                       setIsMenuOpen(false);
                     }}
                     style={{
@@ -686,42 +696,29 @@ export default function HomePage() {
             <h1 style={styles.heroTitle}>
               Fast & Reliable
               <br />
-              <span style={styles.heroSubtitle}>Courier Services</span>
+              <span style={{ color: '#ffd700' }}>Courier</span>
+
             </h1>
             <p style={styles.heroDescription}>
-              Ship your packages across India with confidence. Real-time tracking, competitive pricing, 
-              and doorstep pickup & delivery services.
+              Ship your packages across India with confidence. 
+              <br />Real-time tracking, competitive pricing, and doorstep pickup & delivery services.
             </p>
             
             <div style={styles.heroButtons}>
-              <button
-                onClick={handleGetStarted}
-                style={styles.primaryButton}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-                }}
-              >
-                🚀 Start Shipping Now
-              </button>
-              <button
-                onClick={() => router.push('/same-day-delivery')}
-                style={styles.secondaryButton}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-                }}
-              >
-                ⚡ Same Day Delivery
-              </button>
+                <button
+                  onClick={() => router.push('/order-form')}
+                  style={styles.primaryButton}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+                  }}
+                >
+                  Ship Now
+                </button>
               <button
                 onClick={() => scrollToSection('services')}
                 style={styles.outlineButton}
@@ -812,106 +809,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Services Section */}
-        <section id="services" style={styles.section}>
-          <div style={styles.container}>
-            <h2 style={styles.sectionTitle}>Our Services</h2>
-            <p style={styles.sectionDescription}>
-              Comprehensive logistics solutions for all your shipping needs
-            </p>
 
-            <div style={styles.serviceGrid}>
-              {[
-                {
-                  title: 'Standard Delivery',
-                  subtitle: '2-4 Business Days',
-                  price: 'Starting ₹270',
-                  features: ['Nationwide coverage', 'SMS updates', 'Insurance included', 'Proof of delivery'],
-                  popular: false
-                },
-                {
-                  title: 'Express Delivery',
-                  subtitle: '1-2 Business Days',
-                  price: 'Starting ₹450',
-                  features: ['Priority handling', 'Faster transit', 'Live tracking', 'Premium support'],
-                  popular: true
-                },
-                {
-                  title: 'Same Day Delivery',
-                  subtitle: 'Within City Limits',
-                  price: 'Starting ₹200',
-                  features: ['Ultra-fast delivery', 'Real-time updates', 'Dedicated support', 'Emergency service'],
-                  popular: false
-                }
-              ].map((service, index) => (
-                <div
-                  key={index}
-                  style={{
-                    ...styles.serviceCard,
-                    ...(service.popular ? styles.serviceCardPopular : {})
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!service.popular) {
-                      e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!service.popular) {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
-                    }
-                  }}
-                >
-                  {service.popular && (
-                    <div style={styles.popularBadge}>
-                      ⭐ Most Popular
-                    </div>
-                  )}
-                  
-                  <h3 style={styles.serviceTitle}>{service.title}</h3>
-                  <p style={styles.serviceSubtitle}>{service.subtitle}</p>
-                  <div style={styles.servicePrice}>{service.price}</div>
-
-                  <ul style={styles.featureList}>
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} style={styles.featureListItem}>
-                        <span style={styles.checkmark}>✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button 
-                    onClick={handleGetStarted}
-                    style={{
-                      ...styles.choosePlanButton,
-                      ...(service.popular ? styles.choosePlanButtonPrimary : styles.choosePlanButtonSecondary)
-                    }}
-                    onMouseEnter={(e) => {
-                      if (service.popular) {
-                        e.target.style.background = '#2563eb';
-                      } else {
-                        e.target.style.background = '#3b82f6';
-                        e.target.style.color = 'white';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (service.popular) {
-                        e.target.style.background = '#3b82f6';
-                      } else {
-                        e.target.style.background = 'transparent';
-                        e.target.style.color = '#3b82f6';
-                      }
-                    }}
-                  >
-                    Choose Plan
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* About Section */}
         <section id="about" style={{...styles.section, ...styles.sectionGray}}>
@@ -931,7 +829,7 @@ export default function HomePage() {
                 </p>
                 
                 <button
-                  onClick={handleGetStarted}
+                  onClick={() => router.push('/order-form')}
                   style={{
                     ...styles.primaryButton,
                     background: '#3b82f6',
@@ -1066,33 +964,21 @@ export default function HomePage() {
               Join thousands of satisfied customers who trust NEXYE for their courier needs.
             </p>
             <div style={styles.ctaButtons}>
-              <button
-                onClick={handleGetStarted}
-                style={styles.primaryButton}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-3px)';
-                  e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-                }}
-              >
-                📦 Get Started Today
-              </button>
-              <button 
-                style={styles.outlineButton}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'white';
-                  e.target.style.color = '#333';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'transparent';
-                  e.target.style.color = 'white';
-                }}
-              >
-                View Pricing
-              </button>
+                <button
+                  onClick={() => router.push('/order-form')}
+                  style={styles.primaryButton}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 15px 40px rgba(0,0,0,0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+                  }}
+                >
+                  📦 Get Started Today
+                </button>
+
             </div>
           </div>
         </section>

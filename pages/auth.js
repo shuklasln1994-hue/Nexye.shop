@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { toast } from 'react-toastify';
 
 export default function Authentication() {
   const router = useRouter();
@@ -10,9 +11,67 @@ export default function Authentication() {
     name: '',
     mobile: ''
   });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const configuration = {
+    widgetId: "356972717047363639333533",
+    tokenAuth: "469002TuYNktkGmpAA68c5e8e7P1",
+    identifier: "", // Will be set dynamically
+    exposeMethods: true,
+    success: (data) => {
+        console.log('success response', data);
+        // Handle successful OTP verification
+        setOtpVerified(true);
+        toast.success('OTP Verified Successfully!');
+        router.push('/order-form');
+    },
+    failure: (error) => {
+        console.log('failure reason', error);
+        // Handle error in OTP verification
+        setErrors(prev => ({ ...prev, otp: error.message || 'OTP verification failed.' }));
+        toast.error(error.message || 'OTP verification failed.');
+    },
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    if (window.initSendOTP) {
+      window.initSendOTP({
+        ...configuration,
+        identifier: formData.mobile,
+        success: (data) => {
+          console.log('success response', data);
+          setOtpSent(true);
+          setErrors(prev => ({ ...prev, otp: '' }));
+          toast.success('OTP sent successfully!');
+          setIsSubmitting(false);
+          // The widget handles the OTP input and verification, so we don't need to manage otp state here.
+          // The success callback of the widget will handle navigation after verification.
+        },
+        failure: (error) => {
+          console.log('failure reason', error);
+          setErrors(prev => ({ ...prev, mobile: error.message || 'Failed to send OTP.' }));
+          toast.error(error.message || 'Failed to send OTP.');
+          setIsSubmitting(false);
+        },
+      });
+    } else {
+      toast.error('OTP widget not loaded. Please refresh the page.');
+      setIsSubmitting(false);
+    }
+  };
 
   // Check if user is already authenticated and handle responsive design
   useEffect(() => {
@@ -71,34 +130,13 @@ export default function Authentication() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      setIsSubmitting(true);
-      
-      // Simulate authentication process
-      setTimeout(() => {
-        // Store authentication data in localStorage
-        localStorage.setItem('userAuth', JSON.stringify({
-          name: formData.name,
-          mobile: formData.mobile,
-          timestamp: new Date().toISOString()
-        }));
-        
-        // Redirect to order form
-        router.push('/order-form');
-      }, 2000);
-    }
-  };
-
   return (
     <>
       <Head>
         <title>Authentication - NEXYE | Fast & Reliable Shipping</title>
         <meta name="description" content="Authenticate to access NEXYE courier services" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="📦" />
+        <link rel="icon" href="/nexye-logo.svg" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
 
@@ -421,6 +459,7 @@ export default function Authentication() {
                     onChange={handleInputChange}
                     placeholder="Enter 10-digit mobile number"
                     maxLength="10"
+                    disabled={otpSent}
                     style={{
                       width: '100%',
                       padding: '16px 20px',
@@ -458,6 +497,8 @@ export default function Authentication() {
                     </div>
                   )}
                 </div>
+
+                {/* OTP input is now handled by the MSG91 widget */}
 
                 <button
                   type="submit"
@@ -508,9 +549,9 @@ export default function Authentication() {
                         borderRadius: '50%',
                         animation: 'spin 1s linear infinite'
                       }}></div>
-                      Authenticating...
+                      {'Authenticating...'}
                     </>
-                  ) : 'Continue to Order Form'}
+                  ) : 'Send OTP'}
                 </button>
               </form>
             </div>
@@ -518,7 +559,7 @@ export default function Authentication() {
         </main>
 
         <Footer />
-      </div>
-    </>
-  );
-}
+       </div>
+     </>
+   );
+ }
